@@ -1,0 +1,176 @@
+ex0
+Se as conexões não forem corretamente fechadas, 
+o sistema pode sofrer fugas de recursos e instabilidade.
+O protocolo de desconexão é crítico porque garante a 
+libertação adequada de recursos e a integridade dos dados.
+O descritor de ficheiro permanece aberto
+🔹 Recursos do sistema ficam ocupados
+🔹 Pode ocorrer memory leak
+Lentidão
+Falhas de leitura/escrita
+Crashes do programa
+Corrupção de dados
+Porque fechar o ficheiro:
+Liberta recursos do sistema operativo
+Garante que todos os dados em buffer são gravados
+Mantém a integridade do sistema
+Evita comportamento imprevisível
+vault.read(10)   # lê apenas os primeiros 10 bytes/caracteres
+vault.read()     # lê todo o ficheiro
+
+ex1
+A diferença crítica é que o modo 'r' apenas permite leitura 
+e requer que o ficheiro exista, enquanto o modo 'w' cria ou 
+substitui completamente o ficheiro, apagando qualquer conteúdo 
+anterior. O modo 'w' é destrutivo e deve ser usado com cuidado.
+'r' (extraction mode)
+Apenas leitura
+O ficheiro tem de existir
+Não altera o conteúdo
+Se não existir → FileNotFoundError
+✍ 'w' (preservation mode)
+Escrita
+Se o ficheiro não existir → cria
+Se existir → APAGA TODO O CONTEÚDO
+É destrutivo
+print() vs ✍ write()
+print()	write()
+Mostra no terminal	| Escreve no ficheiro
+Adiciona \n automaticamente	| ❌ Não adiciona \n automaticamente
+Converte tipos automaticamente |	Precisa sempre de str
+É para output visual | É para gravação permanente
+
+ex2
+input() → prompt + leitura automática
+sys.stdin.readline() → você precisa escrever o prompt manualmente e 
+usar flush() para aparecer se stdout estiver em buffer
+
+| Comando                                              | O que acontece            | O que deves ver                          |
+| ---------------------------------------------------- | ------------------------- | ---------------------------------------- |
+| python3 ft_stream_management.py                      | Nada é redirecionado      | Tudo aparece no terminal                 |
+| python3 ft_stream_management.py > out.txt            | stdout vai para `out.txt` | Só o `[ALERT]` aparece no terminal       |
+| python3 ft_stream_management.py 2> err.txt           | stderr vai para `err.txt` | Mensagens normais aparecem no terminal   |
+| python3 ft_stream_management.py > out.txt 2> err.txt | Separa completamente      | Nada (ou quase nada) aparece no terminal |
+
+| Stream   | Símbolo no terminal | Vai para              |
+| -------- | ------------------- | --------------------- |
+| `stdout` | `>` ou `1>`         | `out.txt`             |
+| `stderr` | `2>`                | `err.txt`             |
+| `stdin`  | teclado             | Entrada do utilizador |
+
+❓ Por que os Archives mantêm canais separados?
+Para diferenciar mensagens normais de alertas ou erros críticos.
+Permite redirecionar cada tipo de mensagem de forma independente 
+(por exemplo, logs normais para ficheiros, alertas para sistemas de monitorização).
+Facilita a organização e monitorização automática do sistema.
+Garante que alertas importantes não se perdem em meio a mensagens rotineiras.
+❓ O que poderia acontecer se os streams fossem misturados?
+Mensagens críticas poderiam ser confundidas com informação normal.
+Alertas podem passar despercebidos, atrasando a resposta a problemas.
+Logs e pipelines automáticos poderiam interpretar dados de forma incorreta.
+Debug e manutenção ficariam muito mais difíceis.
+
+ex3
+RAII = Resource Acquisition Is Initialization
+Origem: C++
+Significa: “Adquirir um recurso e inicializá-lo ao mesmo tempo”
+O recurso (ex.: ficheiro, socket, lock) é automaticamente 
+liberado quando o objeto sai de escopo
+Em Python, o with é a implementação prática de RAII:
+Acquire → open(file)
+Use → bloco dentro do with
+Release → arquivo é fechado automaticamente ao sair do bloco
+O with previne corrupção de dados garantindo fecho automático do 
+ficheiro, mesmo em caso de erro.
+RAII (“Resource Acquisition Is Initialization”) 
+assegura que recursos são adquiridos, usados e 
+liberados de forma segura, o que é essencial para 
+manter a integridade dos vaults digitais.
+OSError é uma classe de exceção do Python
+Ela captura erros relacionados ao sistema operativo, como:
+| Tipo de erro    | Exemplo                                             |
+| --------------- | --------------------------------------------------- |
+| Arquivo / disco | Ficheiro inacessível, disco cheio, permissão negada |
+| Diretório       | Tentativa de criar arquivo em pasta que não existe  |
+| Sistema         | Falha geral do sistema (ex.: falha de I/O)          |
+FileNotFoundError é uma subclasse de OSError
+É específico para ficheiros que não existem
+Por isso, temos primeiro o FileNotFoundError
+| Exceção             | Quando ocorre                                                               |
+| ------------------- | --------------------------------------------------------------------------- |
+| `FileNotFoundError` | Ficheiro que queres ler não existe                                          |
+| `OSError`           | Problema com o sistema operativo (permissão, disco cheio, caminho inválido) |
+
+os prints de verificacao - Eles só devem ser colocados depois do with 
+se queres que a mensagem reflita que o ficheiro já foi fechado.
+Se colocares dentro do with, ainda estás com o ficheiro aberto, 
+então a mensagem seria enganosa.
+
+ex4
+Os arquivos digitais estão constantemente sujeitos a falhas como ausência do arquivo, 
+permissões insuficientes, corrupção de dados e erros inesperados do sistema.
+Um sistema robusto deve antecipar esses problemas e responder de forma controlada, 
+evitando que o programa termine abruptamente ou cause perda de dados.
+O uso de with garante o fechamento automático do arquivo, enquanto o tratamento de exceções (try/except) permite 
+lidar com cada tipo de erro de forma específica e segura.
+1️⃣ FileNotFoundError
+Ocorre quando o arquivo não existe no caminho especificado.
+Causas comuns:
+Nome digitado errado
+Arquivo movido ou deletado
+Caminho incorreto
+2️⃣ PermissionError
+Ocorre quando o sistema bloqueia o acesso ao arquivo.
+Causas comuns:
+Arquivo protegido
+Falta de permissões de leitura/escrita
+Arquivo sendo usado por outro processo
+3️⃣ OSError
+Erro mais genérico relacionado ao sistema operacional.
+Causas comuns:
+Disco desconectado
+Problemas no sistema de arquivos
+Falha de hardware
+4️⃣ Corrupção de dados
+Interrupção durante escrita
+Queda de energia
+Falha no armazenamento
+🛡 Como o proper error handling previne perda de dados?
+✔ 1. Evita encerramentos abruptos
+✔ 2. Garante fechamento seguro do arquivo (with)
+✔ 3. Permite resposta controlada
+✔ 4. Protege integridade e segurança
+🧠 Princípios de Defensive Programming
+Defensive Programming significa programar assumindo que algo pode dar errado.
+🔹 1. Antecipar falhas
+🔹 2. Validar entradas
+🔹 3. Tratar erros explicitamente
+🔹 4. Fail safely (falhar com segurança)
+🔹 5. Manter o sistema estável
+
+🔥 Most Dangerous Threats to Digital Archives
+Malware & Ransomware
+Hardware Failure
+Human Error, Exclusão acidental, Sobrescrever arquivos importantes
+Cyber Attacks
+Data Corruption por falhas de energia ou software.
+Obsolete Formats
+Natural Disasters
+write
+file = open("example.txt", "w")
+file.write("Hello, Digital Archive!\n")
+file.close()
+read
+file = open("example.txt", "r")
+content = file.read()
+print(content)
+file.close()
+
+with → é a statement
+O objeto usado dentro do with → é o context manager
+A context manager is an object that defines __enter__() 
+and __exit__() methods.
+O objeto é o valor retornado pela expressão depois do with.
+The object is the value returned by the expression in the with statement. 
+This object must implement the __enter__() and __exit__() 
+methods to be used as a context manager.
