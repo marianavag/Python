@@ -48,7 +48,7 @@ class SensorStream(DataStream):
                     continue
                 if key == "temp":
                     try:
-                        temp_batch.append(float(value))
+                        temp_batch.append(value)
                     except ValueError:
                         print(f"'{item}' is format invalid: "
                               f"value must be numeric")
@@ -216,7 +216,7 @@ class EventStream(DataStream):
             if not event_types:
                 return "No valid events to process."
             self.count += len(event_types)
-            error_count = data_batch.count("error")
+            error_count = event_types.count("error")
             return (
                 f"Event analysis: {len(event_types)} events, "
                 f"{error_count} error detected"
@@ -294,7 +294,7 @@ class StreamProcessor:
 
     def process_filtered(self, all_batches: List[Any],
                          criteria: Optional[str] = None) -> None:
-        if criteria:
+        if criteria == "high":
             print(f"\nStream filtering active: {criteria.capitalize()}-"
                   f"priority data only")
             filtered = []
@@ -309,18 +309,25 @@ class StreamProcessor:
                 print(f"Filtered results: {', '.join(filtered)}")
             else:
                 print("Filtered results: None")
-        else:
+        elif criteria == "" or criteria is None:
             print("\nStream filtering inactive: showing all data")
             all_data = []
             index = 0
             while index < len(all_batches):
                 all_data.extend(all_batches[index])
                 index += 1
-            print(
-                "All data: [" +
-                ", ".join(str(item) for item in all_data) +
-                "]"
-                )
+            print("All data: [" +
+                  ", ".join(str(item) for item in all_data) +
+                  "]")
+        elif criteria != "high":
+            print(f"\nStream filtering active: {criteria.capitalize()}-"
+                  f"priority data only")
+            all_data = []
+            index = 0
+            while index < len(all_batches):
+                all_data.extend(all_batches[index])
+                index += 1
+            print(f"Filtered results: {all_data}")
 
 
 def data_stream() -> None:
@@ -330,12 +337,11 @@ def data_stream() -> None:
     sensor = SensorStream("SENSOR_001")
     print(f"Stream ID: {sensor.stream_id}, Type: {sensor.stream_type}")
     sensor_batch = ["temp:22.5", "humidity:65", "pressure:1013"]
-    valid_items = []
-    for item in sensor_batch:
-        if not isinstance(item, str):
-            continue
-        valid_items.append(item)
-    print(f"Processing sensor batch: [{', '.join(valid_items)}]")
+    print(
+        "Processing sensor batch: [" +
+        ", ".join(str(item) for item in sensor_batch) +
+        "]"
+    )
     try:
         result = sensor.process_batch(sensor_batch)
         print(result)
@@ -346,12 +352,11 @@ def data_stream() -> None:
     trans = TransactionStream("TRANS_001")
     print(f"Stream ID: {trans.stream_id}, Type: {trans.stream_type}")
     trans_batch = ["buy:100", "sell:150", "buy:75"]
-    valid_items = []
-    for item in trans_batch:
-        if not isinstance(item, str):
-            continue
-        valid_items.append(item)
-    print(f"Processing transaction batch: [{', '.join(valid_items)}]")
+    print(
+        "Processing transaction batch: [" +
+        ", ".join(str(item) for item in trans_batch) +
+        "]"
+    )
     try:
         result = trans.process_batch(trans_batch)
         print(result)
@@ -362,12 +367,11 @@ def data_stream() -> None:
     event = EventStream("EVENT_001")
     print(f"Stream ID: {event.stream_id}, Type: {event.stream_type}")
     event_batch = ["login", "error", "logout"]
-    valid_items = []
-    for item in event_batch:
-        if not isinstance(item, str):
-            continue
-        valid_items.append(item)
-    print(f"Processing transaction batch: [{', '.join(valid_items)}]")
+    print(
+        "Processing event batch: [" +
+        ", ".join(str(item) for item in event_batch) +
+        "]"
+    )
     try:
         result = event.process_batch(event_batch)
         print(result)
@@ -382,12 +386,12 @@ def data_stream() -> None:
     processor.add_stream(event)
     all_batches = [
         ["temp:48", "humidity:80"],
-        ["buy:200", 23, "sell:50", "buy:10", "sell:20"],
+        ["buy:200", "sell:50", "buy:10", "sell:20"],
         ["login", "error", "logout"]
     ]
     try:
         processor.count_report(all_batches)
-        processor.process_filtered(all_batches, "low")
+        processor.process_filtered(all_batches, "high")
     except Exception as e:
         print(f"Error: {e}")
     print("\nAll streams processed successfully. Nexus throughput optimal.")

@@ -243,3 +243,27 @@ all_batches = [
 processor.process_filtered(all_batches, "high")
 processor.process_filtered(all_batches)
 processor.process_filtered(all_batches, "low")
+
+
+
+
+
+ex2
+
+JSON (JavaScript Object Notation): * É o formato "rei" da internet hoje em dia. 🌐
+Ele organiza os dados em pares de chave: valor, muito parecido com os dict (dicionários) do Python.
+Exemplo: {"sensor": "temp", "valor": 23.5}. É fácil de ler tanto para humanos quanto para máquinas.
+
+CSV (Comma-Separated Values): * É o formato clássico das folhas de cálculo (como o Excel). 📊
+Os dados são apenas linhas de texto onde cada informação é separada por uma vírgula.
+Exemplo: sensor,valor\ntemp,23.5. É muito leve e simples, mas menos flexível que o JSON.
+
+🔌 O que são os Adaptadores (Adapters)?
+Na engenharia de software, um Adaptador funciona exatamente como um adaptador de tomada universal. 🔌
+O Problema: O seu pipeline principal espera "dados processáveis", mas o JSON chega como uma string complexa 
+e o CSV chega como uma linha de texto.
+A Solução: Criamos uma classe para cada formato.
+O JSONAdapter sabe ler o "idioma" JSON.
+O CSVAdapter sabe ler o "idioma" CSV.
+O Truque: Ambos herdam da mesma "mãe" (ProcessingPipeline), por isso o sistema pode tratá-los da mesma forma, 
+sem se preocupar com o que está lá dentro.
