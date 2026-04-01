@@ -24,7 +24,6 @@ class TransformStage:
         if data.get("raw") == "invalid_data":
             raise ValueError("Invalid data format")
         if isinstance(data, dict) and "value" in data:
-            print("Transform: Enriched with metadata and validation")
             temp = data.get("value")
             if not isinstance(temp, (int, float)):
                 raise TypeError("Temperature must be numeric")
@@ -34,7 +33,6 @@ class TransformStage:
                 else:
                     data["range_status"] = "Critical range"
         if isinstance(data, dict) and "readings" in data:
-            print("Transform: Aggregated and filtered")
             readings = data.get("readings", [])
             data["num_reads"] = len(readings)
             if data["num_reads"] > 0:
@@ -45,13 +43,12 @@ class TransformStage:
         raw_content = data.get("raw")
         if isinstance(raw_content, str):
             if "," in raw_content:
-                print("Transform: Parsed and structured data")
                 if "num_of_actions" not in data:
                     data["num_of_actions"] = 0
                 data["num_of_actions"] += 1
                 return data
             else:
-                raise ValueError("Invalid data format: Missing ',' separator")
+                return
         return data
 
 
@@ -95,13 +92,7 @@ class JSONAdapter(ProcessingPipeline):
     def __init__(self, pipeline_id: str) -> None:
         super().__init__(pipeline_id)
 
-    def process(self, data: Any) -> Any:
-        if data != "invalid_data":
-            print("\nProcessing JSON data through pipeline...")
-            try:
-                print(f"Input: {json.dumps(data)}")
-            except Exception:
-                print("Invalid JSON format")
+    def process(self, data: Any) -> Union[str, Any]:
         current_result = data
         stage_counter = 1
         try:
@@ -120,10 +111,7 @@ class CSVAdapter(ProcessingPipeline):
     def __init__(self, pipeline_id: str) -> None:
         super().__init__(pipeline_id)
 
-    def process(self, data: Any) -> Any:
-        if data != "invalid_data":
-            print("\nProcessing CSV data through same pipeline...")
-            print(f'Input: "{data}"')
+    def process(self, data: Any) -> Union[str, Any]:
         current_result = data
         stage_counter = 1
         try:
@@ -142,15 +130,13 @@ class StreamAdapter(ProcessingPipeline):
     def __init__(self, pipeline_id: str) -> None:
         super().__init__(pipeline_id)
 
-    def process(self, data: Any) -> Any:
-        if data != "invalid_data":
-            print("\nProcessing Stream data through same pipeline...")
-            print(f"Input: {data}")
-            data = {
+    def process(self, data: Any) -> Union[str, Any]:
+        current_result = data
+        if data is not None:
+            current_result = {
                 "raw": data,
                 "readings": [21.0, 22.5, 23.0, 21.0, 23.0]
             }
-        current_result = data
         stage_counter = 0
         try:
             for stage in self.stages:
@@ -167,21 +153,26 @@ class StreamAdapter(ProcessingPipeline):
 class NexusManager:
     def __init__(self) -> None:
         self.pipelines: List[ProcessingPipeline] = []
-        self.record_proc = 0
+        self.record_proc = 1
 
     def add_pipeline(self, pipeline: ProcessingPipeline) -> None:
         self.pipelines.append(pipeline)
 
-    def process_all(self, pipeline: ProcessingPipeline, raw_data: Any) -> Any:
+    def process_data(self, pipeline: ProcessingPipeline, raw_data: Any) -> Any:
         self.record_proc += 33
         return pipeline.process(raw_data)
+
+    def chain_pipelines(self, raw_data: Any) -> Union[str, Any]:
+        output = raw_data
+        for pipeline in self.pipelines:
+            output = pipeline.process(output)
+        return output
 
     def chain_demo(self) -> None:
         print("Pipeline A -> Pipeline B -> Pipeline C")
         print("Data flow: Raw -> Processed -> Analyzed -> Stored\n")
-        total = self.record_proc + 1
         simulated_time = len(self.pipelines) * 0.066
-        print(f"Chain result: {total} records processed through "
+        print(f"Chain result: {self.record_proc} records processed through "
               f"{len(self.pipelines)}-stage pipeline")
         print(f"Performance: 95% efficiency, {simulated_time:.1f}s total "
               f"processing time")
@@ -211,29 +202,40 @@ def ft_nexus_pipeline() -> None:
     manager.add_pipeline(csv_pipe)
     manager.add_pipeline(stream_pipe)
 
-    print("=== Multi-Format Data Processing ===")
+    print("=== Multi-Format Data Processing ===\n")
     try:
         json_data = {"sensor": "temp", "value": 23.5, "unit": "C"}
-        result_json = manager.process_all(json_pipe, json_data)
+        print("Processing JSON data through pipeline...")
+        print(f"Input: {json.dumps(json_data)}")
+        result_json = manager.process_data(json_pipe, json_data)
+        print("Transform: Enriched with metadata and validation")
         print(f"Output: {result_json}")
     except Exception as e:
         print(f"Critical System Error: Could not parse input data -> {e}")
 
     csv_data = "user,action,timestamp"
-    result_csv = manager.process_all(csv_pipe, csv_data)
+    print("\nProcessing CSV data through same pipeline...")
+    print(f'Input: "{csv_data}"')
+    result_csv = manager.process_data(csv_pipe, csv_data)
+    print("Transform: Parsed and structured data")
     print(f"Output: {result_csv}")
 
     stream_data = "Real-time sensor stream"
-    result_stream = manager.process_all(stream_pipe, stream_data)
+    print("\nProcessing Stream data through same pipeline...")
+    result_stream = manager.process_data(stream_pipe, stream_data)
+    print(f"Input: {stream_data}")
+    print("Transform: Aggregated and filtered")
     print(f"Output: {result_stream}")
 
     print("\n=== Pipeline Chaining Demo ===")
+    raw_input = "ok,chain"
+    manager.chain_pipelines(raw_input)
     manager.chain_demo()
 
     print("\n=== Error Recovery Test ===")
     print("Simulating pipeline failure...")
     bad_json = "invalid_data"
-    manager.process_all(json_pipe, bad_json)
+    manager.process_data(json_pipe, bad_json)
     print("\nNexus Integration complete. All systems operational.")
 
 

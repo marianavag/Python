@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 
 class DataStream(ABC):
-    def __init__(self, stream_id: str, stream_type) -> None:
+    def __init__(self, stream_id: str, stream_type: str) -> None:
         self.stream_id = stream_id
         self.stream_type = stream_type
 
@@ -27,7 +27,7 @@ class SensorStream(DataStream):
     def __init__(self, stream_id: str) -> None:
         super().__init__(stream_id, "Environmental Data")
         self.count = 0
-        self.last_avg = 0
+        self.last_avg = 0.0
 
     def process_batch(self, data_batch: List[Any]) -> str:
         try:
@@ -40,9 +40,9 @@ class SensorStream(DataStream):
                 if len(parts) != 2 or parts[1] == "":
                     print(f"'{item}' is format invalid: expected 'type:value'")
                     continue
-                key, value = parts
+                key, value_str = parts
                 try:
-                    value = float(value)
+                    value = float(value_str)
                 except ValueError:
                     print(f"'{item}' is format invalid: value must be numeric")
                     continue
@@ -128,9 +128,9 @@ class TransactionStream(DataStream):
                 if len(parts) != 2 or parts[1] == "":
                     print(f"'{item}' is format invalid: expected 'type:value'")
                     continue
-                key, value = parts
+                key, value_str = parts
                 try:
-                    value = int(value)
+                    value = int(value_str)
                 except ValueError:
                     print(f"'{item}' is format invalid: value must be numeric")
                     continue
