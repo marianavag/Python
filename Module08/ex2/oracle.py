@@ -20,7 +20,8 @@ def load_config() -> bool:
     success = True
     print("Configuration loaded:")
     if mode not in ("production", "development"):
-        print("[WARNING] MATRIX_MODE missing. Must be 'development' or 'production.\n"
+        print("[WARNING] MATRIX_MODE missing. Must be 'development' "
+              "or 'production.\n"
               "Defaulting to 'development'\n")
         mode = "development"
     print(f"Mode: {mode}")
@@ -32,7 +33,7 @@ def load_config() -> bool:
         if not api:
             print("[WARNING] API_KEY not found. Using default: Authenticated")
             api = "Authenticated"
-        print(f"API Access: Authenticated")
+        print("API Access: Authenticated")
         if not log:
             print("[WARNING] LOG_LEVEL not found. Using default: DEBUG")
             log = "DEBUG"
@@ -51,7 +52,7 @@ def load_config() -> bool:
             print("[ERROR] API_KEY missing in production!")
             success = False
         else:
-            print(f"API Access: Authenticated")
+            print("API Access: Authenticated")
         if not log:
             print("[WARNING] LOG_LEVEL not found. Using default: DEBUG")
             log = "DEBUG"
@@ -90,7 +91,8 @@ def load_config() -> bool:
         if key in original_env:
             check_overrides.append(key)
     if check_overrides:
-        print(f"[INFO] Environment overrides detected: {', '.join(check_overrides)}")
+        print(f"[INFO] Environment overrides detected: "
+              f"{', '.join(check_overrides)}")
     else:
         print("[OK] Production overrides available")
     return success
@@ -100,7 +102,8 @@ if __name__ == "__main__":
     if sys.prefix == sys.base_prefix:
         print("\nMATRIX STATUS: You're still plugged in\n")
         print(
-            "It's recommended to use a virtual environment before running this program.\n"
+            "It's recommended to use a virtual environment "
+            "before running this program.\n"
             "To enter the construct, run:\n"
             "python3 -m venv matrix_env\n"
             "source matrix_env/bin/activate # On Unix\n"
