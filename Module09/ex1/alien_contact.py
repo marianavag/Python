@@ -14,7 +14,7 @@ class ContactType(str, Enum):
 
 class AlienContact(BaseModel):
     contact_id: str = Field(min_length=5, max_length=15)
-    timestamp: datetime
+    timestamp: datetime = Field()
     location: str = Field(min_length=3, max_length=100)
     contact_type: ContactType
     signal_strength: float = Field(ge=0.0, le=10.0)
@@ -53,7 +53,7 @@ alien_contacts: List[Dict[str, Any]] = [
         'signal_strength': 8.5,
         'duration_minutes': 45,
         'witness_count': 5,
-        'message_received': 'Greetings from Zeta Reticuli'
+        'message_received': 'Greetings from Zeta Reticuli',
     },
     {
         'contact_id': 'AC_2024_001',
