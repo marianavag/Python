@@ -31,18 +31,26 @@ def compare_dependencies(installed_vers: Dict[str, Optional[str]],
                     parts = line.split("=")
                     if len(parts) == 2:
                         name = parts[0].strip().replace('"', '')
+                        if name == "python":
+                            continue
                         poe_vers = parts[1].strip().strip('"').replace('^', '')
                         poetry[name] = poe_vers
     except FileNotFoundError:
         pass
-    is_poetry = bool(poetry)
-    current_deps = poetry if is_poetry else pip
+    if pip:
+        current_deps = pip
+        is_poetry = False
+    elif poetry:
+        current_deps = poetry
+        is_poetry = True
+    else:
+        current_deps = {}
+        is_poetry = False
     if not current_deps:
         print("[!] Error: No dependency file found "
               "(requirements.txt or pyproject.toml).")
         print("Execution aborted.\n")
         return False
-    print(f"CURRENT ENVIRONMENT - {'POETRY' if is_poetry else 'PIP'}:")
     print("Checking dependencies:")
     all_ok = True
     for pkg, req_version in current_deps.items():
@@ -77,7 +85,7 @@ def matrix_organiser() -> None:
     import numpy as np
     import matplotlib.pyplot as plt
     print("Analyzing Matrix data...")
-    matrix_data = np.random.randint(1, 1001, size=(200, 2))
+    matrix_data = np.random.randint(1, 1001, size=(1000, 2))
     print("Processing 1000 data points...")
     df = pd.DataFrame(data=matrix_data, columns=["Size_KB", "Speed_Mbps"])
     df['Latency'] = df['Size_KB'] / df['Speed_Mbps']
@@ -99,7 +107,8 @@ if __name__ == "__main__":
     if sys.prefix == sys.base_prefix:
         print("\nMATRIX STATUS: You're still plugged in\n")
         print(
-            "It's recommended to use a virtual environment before running this program.\n"
+            "It's recommended to use a virtual environment before running"
+            " this program.\n"
             "To enter the construct, run:\n"
             "python3 -m venv matrix_env\n"
             "source matrix_env/bin/activate # On Unix\n"

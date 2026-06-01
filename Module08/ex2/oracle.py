@@ -21,7 +21,7 @@ def load_config() -> bool:
     print("Configuration loaded:")
     if mode not in ("production", "development"):
         print("[WARNING] MATRIX_MODE missing. Must be 'development' "
-              "or 'production.\n"
+              "or 'production'.\n"
               "Defaulting to 'development'\n")
         mode = "development"
     print(f"Mode: {mode}")
