@@ -21,13 +21,13 @@ def power_validator(min_power: int) -> Callable:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             power = kwargs.get("power")
-            if power is None:
+            if power is None and len(args) > 0:
                 power = args[-1]
-            if power is not None and power >= min_power:
-                result = func(*args, **kwargs)
-            else:
+            if power is None:
                 return "Insufficient power for this spell"
-            return result
+            if power >= min_power:
+                return func(*args, **kwargs)
+            return "Insufficient power for this spell"
         return wrapper
     return decorator
 
@@ -51,8 +51,12 @@ def retry_spell(max_attempts: int) -> Callable:
 class MageGuild:
     @staticmethod
     def validate_mage_name(name: str) -> bool:
-        clean_name = name.replace(" ", "")
-        return len(clean_name) >= 3 and clean_name.isalpha()
+        if len(name) < 3:
+            return False
+        for char in name:
+            if not (char.isalpha() or char.isspace()):
+                return False
+        return True
 
     @power_validator(min_power=10)
     def cast_spell(self, spell_name: str, power: int) -> str:
